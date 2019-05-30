@@ -28,19 +28,19 @@ namespace {
 
 namespace m2tsext {
 
-    bool M2TSProcessor::processPacket(TPacketData& packetData) {
+    Result<std::monostate> M2TSProcessor::processPacket(TPacketData& packetData) {
         PacketHeader ph(packetData.data());
         if (ph.syncByte() != 'G') {
             // format of ts is corrupted
-            return false;
+            return Error("Wrong sync byte error: " + ph.syncByte());;
         }
         if (ph.transportErrorIndicator()) {
             // skip broken packet
-            return true;
+            return std::monostate();
         }
         if (!ph.hasPayload()) {
             // skip packet without a payload
-            return true;
+            return std::monostate();
         }
         if (PredefinedPid(ph.pid()) == PredefinedPid::PAT) {
             processPATPacket(ph);
@@ -49,12 +49,20 @@ namespace m2tsext {
             processPMTPacket(ph);
         }
         else if (ph.pid() == audioPID) {
-            processAudioPacket(ph);
+            const auto& result = processAudioPacket(ph);
+            if (result.isOK()) {
+                return result;
+            }
+            return Error("Error while processing an audio packet: " + result.error().what());
         }
         else if (ph.pid() == videoPID) {
-            processVideoPacket(ph);
+            const auto& result = processVideoPacket(ph);
+            if (result.isOK()) {
+                return result;
+            }
+            return Error("Error while processing a video packet: " + result.error().what());
         }
-        return true;
+        return std::monostate();
     }
 
     void M2TSProcessor::setAudioDataProcessor(TDataProcessor&& aProcessor) {
@@ -108,7 +116,7 @@ namespace m2tsext {
         }
     }
 
-    void processPES(const PacketHeader& packetHeader,
+    Result<std::monostate> processPES(const PacketHeader& packetHeader,
         TDataProcessor& dataProcessor,
         uint16_t& remainingPESLength) {
         const uint8_t* data = packetHeader.payloadData();
@@ -123,22 +131,22 @@ namespace m2tsext {
             dataSize = std::min(dataSize, remainingPESLength);
             remainingPESLength -= dataSize;
         }
-        dataProcessor(data, dataSize);
+        return dataProcessor(data, dataSize);
     }
 
-    void M2TSProcessor::processAudioPacket(const PacketHeader& packetHeader)
+    Result<std::monostate> M2TSProcessor::processAudioPacket(const PacketHeader& packetHeader)
     {
         if (!audioDataProcessor) {
-            return;
+            return std::monostate();
         }
-        processPES(packetHeader, audioDataProcessor, audioPESLength);
+        return processPES(packetHeader, audioDataProcessor, audioPESLength);
     }
 
-    void M2TSProcessor::processVideoPacket(const PacketHeader& packetHeader)
+    Result<std::monostate> M2TSProcessor::processVideoPacket(const PacketHeader& packetHeader)
     {
         if (!videoDataProcessor) {
-            return;
+            return std::monostate();
         }
-        processPES(packetHeader, videoDataProcessor, videoPESLength);
+        return processPES(packetHeader, videoDataProcessor, videoPESLength);
     }
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Error.h"
 #include "PacketHeader.h"
 
 #include <array>
@@ -7,14 +8,14 @@
 #include <vector>
 
 namespace m2tsext {
-    using TDataProcessor = std::function<bool(const uint8_t* data, size_t dataSize)>;
+    using TDataProcessor = std::function<Result<std::monostate>(const uint8_t* data, size_t dataSize)>;
     using TPacketData = std::array<uint8_t, PACKET_SIZE>;
 
     // Class used for MPEG-2 TS splitting
     class M2TSProcessor {
     public:
         // function that process any input packet from MPEG-2 TS
-        bool processPacket(TPacketData& packetData);
+        Result<std::monostate> processPacket(TPacketData& packetData);
 
         // sets the function that is called for audio data from splitted TS
         void setAudioDataProcessor(TDataProcessor&& aProcessor);
@@ -33,7 +34,7 @@ namespace m2tsext {
 
         void processPATPacket(const PacketHeader& packetHeader);
         void processPMTPacket(const PacketHeader& packetHeader);
-        void processAudioPacket(const PacketHeader& packetHeader);
-        void processVideoPacket(const PacketHeader& packetHeader);
+        Result<std::monostate> processAudioPacket(const PacketHeader& packetHeader);
+        Result<std::monostate> processVideoPacket(const PacketHeader& packetHeader);
     };
 }

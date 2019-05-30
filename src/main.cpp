@@ -1,3 +1,4 @@
+#include "Error.h"
 #include "m2tsextractor.h"
 #include "util.h"
 
@@ -5,16 +6,16 @@
 #include <iostream>
 
 void printErrorParameters() {
-    std::cerr << "Wrong parameters. Usage:\n"
-        << "\tts-demux -i <input_file> -a <audio_file> -v <video_file>\n";
+    m2tsext::printErrorMessage( "Wrong parameters. Usage:\n"
+         "\tts-demux -i <input_file> -a <audio_file> -v <video_file>\n");
 }
 
 void printErrorNoInputFile(const std::string& file) {
-    std::cerr << "No such file: " << file << '\n';
+    m2tsext::printErrorMessage("No such file: " + file);
 }
 
 void printErrorNoOutputFile(const std::string& file) {
-    std::cerr << "Could not create: " << file << '\n';
+    m2tsext::printErrorMessage("Could not create: " + file);
 }
 
 int main(int argc, char* argv[]) {
@@ -46,6 +47,10 @@ int main(int argc, char* argv[]) {
         printErrorNoOutputFile(videoOutputFileName);
         return 1;
     }
-    m2tsext::extractVideoAudioFromM2TSSstream(i, v, a);
+    const auto& result = m2tsext::extractVideoAudioFromM2TSSstream(i, v, a);
+    if (!result.isOK()) {
+        m2tsext::printErrorMessage(result.error().what());
+        return 1;
+    }
     return 0;
 }

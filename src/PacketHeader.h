@@ -72,13 +72,14 @@ namespace m2tsext {
             auto payloadData = data + 4;
             if (hasAdaptationField()) {
                 AdaptationField af(payloadData);
-                payloadData += af.adaptationFieldLength() + 1;
+                payloadData += af.adaptationFieldLength();
+                ++payloadData; // skip the adaptation field length length (1 byte)
             }
             return payloadData;
         }
         
         const uint16_t payloadSize() const {
-            return data + PACKET_SIZE - payloadData(); 
+            return uint16_t(data + PACKET_SIZE - payloadData());
         }
     private:
         const uint8_t* data;

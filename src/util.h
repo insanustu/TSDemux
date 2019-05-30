@@ -2,6 +2,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <iostream>
 
 namespace m2tsext {
     template <typename T, size_t NBytes>
@@ -49,4 +50,8 @@ namespace m2tsext {
 
     std::unordered_map<std::string, std::string> parseParameters (
             int numberOfParameters, char* parameters[]);
+
+    inline void printErrorMessage(const std::string& msg) {
+        std::cerr << "\033[1;31m" << msg << "\033[0m\n";
+    }
 }
