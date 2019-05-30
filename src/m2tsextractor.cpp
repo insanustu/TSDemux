@@ -10,14 +10,18 @@ namespace m2tsext {
         std::ostream& outVideoStream,
         std::ostream& outAudioStream) {
         M2TSProcessor mpr;
-        mpr.setAudioDataProcessor([&outAudioStream](const uint8_t* data, size_t dataSize) mutable {
-            outAudioStream.write((char*)data, dataSize);
-            return true;
-            });
-        mpr.setVideoDataProcessor([&outVideoStream](const uint8_t* data, size_t dataSize) mutable {
-            outVideoStream.write((char*)data, dataSize);
-            return true;
-            });
+        if (outAudioStream) {
+            mpr.setAudioDataProcessor([&outAudioStream](const uint8_t* data, size_t dataSize) mutable {
+                outAudioStream.write((char*)data, dataSize);
+                return true;
+                });
+        }
+        if (outVideoStream) {
+            mpr.setVideoDataProcessor([&outVideoStream](const uint8_t* data, size_t dataSize) mutable {
+                outVideoStream.write((char*)data, dataSize);
+                return true;
+                });
+        }
         while (m2tsStream) {
             TPacketData data;
             m2tsStream.read((char*)data.data(), data.size());

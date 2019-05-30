@@ -128,11 +128,17 @@ namespace m2tsext {
 
     void M2TSProcessor::processAudioPacket(const PacketHeader& packetHeader)
     {
+        if (!audioDataProcessor) {
+            return;
+        }
         processPES(packetHeader, audioDataProcessor, audioPESLength);
     }
 
     void M2TSProcessor::processVideoPacket(const PacketHeader& packetHeader)
     {
+        if (!videoDataProcessor) {
+            return;
+        }
         processPES(packetHeader, videoDataProcessor, videoPESLength);
     }
 }

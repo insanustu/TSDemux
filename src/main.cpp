@@ -5,7 +5,7 @@
 #include <iostream>
 
 void printErrorParameters() {
-    std::cerr << "Wrong parameters. Usage: \n"
+    std::cerr << "Wrong parameters. Usage:\n"
         << "\tts-demux -i <input_file> -a <audio_file> -v <video_file>\n";
 }
 
@@ -27,23 +27,22 @@ int main(int argc, char* argv[]) {
     auto audioOutputFileName = parameters["-a"];
     auto videoOutputFileName = parameters["-v"];
     if (inputFileName.empty() ||
-        audioOutputFileName.empty() ||
-        videoOutputFileName.empty()) {
+        (audioOutputFileName.empty() && videoOutputFileName.empty())) {
         printErrorParameters();
         return 1;
     }
     std::ifstream i(inputFileName, std::ios::binary);
-    std::ofstream a(audioOutputFileName, std::ios::binary);
-    std::ofstream v(videoOutputFileName, std::ios::binary);
     if (!i.is_open()) {
         printErrorNoInputFile(inputFileName);
         return 1;
     }
-    if (!a.is_open()) {
+    std::ofstream a(audioOutputFileName, std::ios::binary);
+    if (!audioOutputFileName.empty() && !a.is_open()) {
         printErrorNoOutputFile(audioOutputFileName);
         return 1;
     }
-    if (!v.is_open()) {
+    std::ofstream v(videoOutputFileName, std::ios::binary);
+    if (!videoOutputFileName.empty() && !v.is_open()) {
         printErrorNoOutputFile(videoOutputFileName);
         return 1;
     }
